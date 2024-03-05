@@ -7,12 +7,15 @@ ARG APP_UID="${APP_UID:-6972}"
 ARG APP_GID="${APP_GID:-6972}"
 ARG GPU_CHOICE=A
 ARG USE_CUDA118=FALSE 
-ARG LAUNCH_AFTER_INSTALL=FALSE 	
+ARG LAUNCH_AFTER_INSTALL=FALSE
 ARG INSTALL_EXTENSIONS=TRUE
+
+RUN groupadd -g ${APP_GID} appgroup && \
+    useradd -r -u ${APP_UID} -g appgroup appuser
 
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked,rw \
     apt update && \
-    apt install --no-install-recommends -y git vim build-essential python3-dev pip bash curl && \
+    apt install --no-install-recommends -y git vim build-essential python3-dev python3-pip bash curl && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /home/app/
 RUN git clone https://github.com/oobabooga/text-generation-webui.git 
@@ -22,4 +25,8 @@ COPY CMD_FLAGS.txt /home/app/text-generation-webui/
 EXPOSE ${CONTAINER_PORT:-7860} ${CONTAINER_API_PORT:-5000} ${CONTAINER_API_STREAM_PORT:-5005}
 # set umask to ensure group read / write at runtime
 WORKDIR /home/app/text-generation-webui
-CMD umask 0002 && export HOME=/home/app/text-generation-webui && ./start_linux.sh
+
+RUN chown -R appuser:appgroup /home/app/text-generation-webui
+USER appuser
+
+CMD umask 0002 && export HOME=/home/app/text-generation-webui && ./start_linux.sh > /proc/1/fd/1 2>/proc/1/fd/2

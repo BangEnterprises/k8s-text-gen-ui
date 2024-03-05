@@ -1,0 +1,6 @@
+# Only used by the one-click installer.
+# Example:
+# --listen --api
+ --listen --api --trust-remote-code --load-in-8bit --no_offload_kqv --no_inject_fused_attention \
+ --no_inject_fused_mlp --no_mul_mat_q --gradio-auth $USERNAME:$PASSWORD --api-key $API_KEY \
+ --admin-key $ADMIN_KEY
